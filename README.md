@@ -2,7 +2,7 @@
 
 ## Descripción
 
-Este script automatiza la descarga de datos de municipios desde el sitio web de CHIP (https://www.chip.gov.co/schip_rt/index.jsf). Utiliza Selenium para interactuar con la página web y Pandas para manipular los datos. El script realiza las siguientes tareas:
+Este script automatiza la descarga de datos de municipios desde el sitio web de [CHIP](https://www.chip.gov.co/schip_rt/index.jsf). Utiliza Selenium para interactuar con la página web y Pandas para manipular los datos. El script realiza las siguientes tareas:
 
 1. Carga un archivo CSV con información de municipios.
 2. Genera una nueva columna con el formato "IdEntidad - Municipio".
