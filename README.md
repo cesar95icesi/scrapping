@@ -39,6 +39,32 @@ Este script automatiza la descarga de datos de municipios desde el sitio web de 
     python script.py
     ```
 
+    4. (Opcional) Crea un entorno virtual para aislar las dependencias del proyecto. Puedes hacerlo ejecutando:
+
+        ```bash
+        python -m venv venv
+        ```
+
+        Activa el entorno virtual:
+
+        - En Windows:
+
+            ```bash
+            .\venv\Scripts\activate
+            ```
+
+        - En macOS y Linux:
+
+            ```bash
+            source venv/bin/activate
+            ```
+
+    5. Instala las dependencias desde el archivo `requirements.txt`:
+
+        ```bash
+        pip install -r requirements.txt
+        ```
+
 4. Los archivos descargados se guardarán en la carpeta especificada en `destination_dir`.
 5. Si hay municipios que no pudieron ser procesados, se guardarán en un archivo CSV llamado `municipios_no_procesados.csv`.
 
