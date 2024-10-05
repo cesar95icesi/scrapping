@@ -74,7 +74,7 @@ for index, row in municipios.iterrows():
         continue
     
     # Intentar procesar el municipio hasta 3 veces
-    for attempt in range(3):
+    for attempt in range(2):
         try:
             # Acceder a la página
             driver.get("https://www.chip.gov.co/schip_rt/index.jsf")
@@ -92,10 +92,9 @@ for index, row in municipios.iterrows():
 
             # Buscar el ID del municipio
             send_keys_element(driver, By.CSS_SELECTOR, "#frm1\\:SelBoxEntidadCiudadano input[id='frm1:SelBoxEntidadCiudadano_input']", municipio)
-            time.sleep(1)
             send_keys_element(driver, By.CSS_SELECTOR, "#frm1\\:SelBoxEntidadCiudadano input[id='frm1:SelBoxEntidadCiudadano_input']", Keys.RETURN)
-            time.sleep(2)
-
+            time.sleep(1)
+            
             # Seleccionar la categoría "FUT_GASTOS_DE_INVERSION" del select con el ID "frm1:SelBoxCategoria"
             categoria_select = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, "#frm1\\:SelBoxCategoria"))
