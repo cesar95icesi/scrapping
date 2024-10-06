@@ -1,14 +1,16 @@
+# Importar las librerías necesarias
 import os
 import time
-import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import StaleElementReferenceException, TimeoutException
+import pandas as pd
+import nbformat
+import unicodedata
 
-# Transformación de los datos Municipios y generar dataset
+# Transformacion de los datos Municipios y generar dataset
 # Cargar el archivo CSV
 municipios_df = pd.read_csv('municipios/Municipios_Chip.csv')
 
@@ -16,10 +18,10 @@ municipios_df = pd.read_csv('municipios/Municipios_Chip.csv')
 municipios_df['Entidad_Municipio'] = municipios_df['IdEntidad'].astype(str) + ' - ' + municipios_df['RazónSocial']
 
 # Mostrar el dataframe resultante
-municipios = municipios_df[['Entidad_Municipio']]
-municipiosid = municipios_df[['IdEntidad']]
-print("Municipios", municipios)
-print("IdEntidad", municipiosid)
+municipios = (municipios_df[['Entidad_Municipio']])
+municipiosid = (municipios_df[['IdEntidad']])
+# print("Municipios", municipios)
+# print("IdEntidad", municipiosid)
 
 # Definir la ruta de destino
 destination_dir = "/Users/cesar/Documents/Importacion/activos"
@@ -32,6 +34,8 @@ download_dir = "/Users/cesar/Downloads"  # Ruta de la carpeta de descargas por d
 
 # Lista para almacenar los municipios que no pudieron procesarse
 municipios_no_procesados = []
+
+
 
 # Función para hacer clic en un elemento con reintentos
 def click_element(driver, by, value, retries=3):
@@ -63,17 +67,23 @@ def send_keys_element(driver, by, value, keys, retries=3):
             else:
                 raise
 
+# Función para sanitizar el nombre del municipio
+def sanitize_filename(filename):
+    filename = unicodedata.normalize('NFKD', filename).encode('ascii', 'ignore').decode('ascii')
+    return filename
+
 # Iterar sobre cada municipio en el dataframe
 for index, row in municipios.iterrows():
     municipio = row['Entidad_Municipio']
-    expected_filename = f"{municipio}.xls"
+    sanitized_municipio = sanitize_filename(municipio)
+    expected_filename = f"{sanitized_municipio}.xls"
     
-    # Verificar si el archivo ya existe
-    if os.path.exists(os.path.join(destination_dir, expected_filename)):
+    # Verificar si el archivo ya existe en la carpeta de destino
+    if any(sanitize_filename(f).replace('.xls', '') == sanitized_municipio for f in os.listdir(destination_dir) if f.endswith('.xls')):
         print(f"El archivo {expected_filename} ya existe. Saltando descarga.")
         continue
     
-    # Intentar procesar el municipio hasta 3 veces
+    # Intentar procesar el municipio hasta 2 veces
     for attempt in range(2):
         try:
             # Acceder a la página
@@ -139,18 +149,13 @@ for index, row in municipios.iterrows():
             # Hacer clic en la imagen para descargar el archivo
             click_element(driver, By.CSS_SELECTOR, "a[title='Descargar a Excel'] img")
 
-            # Extraer el texto del span
-            span_text = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.ID, "frm1:j_idt152"))
-            ).text
-
             time.sleep(1)
 
             # Renombrar y mover el archivo descargado
             for filename in os.listdir(download_dir):
                 if filename.endswith(".xls"):  # Ajusta la extensión según el tipo de archivo descargado
                     source_path = os.path.join(download_dir, filename)
-                    destination_path = os.path.join(destination_dir, f"{span_text}.xls")
+                    destination_path = os.path.join(destination_dir, f"{sanitized_municipio}.xls")
                     os.rename(source_path, destination_path)
                     break
 
@@ -160,13 +165,13 @@ for index, row in municipios.iterrows():
         except Exception as e:
             print(f"Error al procesar el municipio {municipio} en el intento {attempt + 1}: {e}")
             print(f"Detalles del error: {e.__class__.__name__}: {e}")
-            if attempt == 2:  # Si es el último intento, agregar a la lista de no procesados
+            if attempt == 1:  # Si es el último intento, agregar a la lista de no procesados
                 municipios_no_procesados.append(municipio)
 
 # Guardar los municipios que no pudieron procesarse en un archivo CSV
 if municipios_no_procesados:
     df_no_procesados = pd.DataFrame(municipios_no_procesados, columns=['Municipio'])
-    df_no_procesados.to_csv('municipios_no_procesados.csv', index=False)
-
+    df_no_procesados.to_csv('no_procesado/municipios_no_procesados.csv', index=False)
 # Cerrar el navegador
 driver.quit()
+print("Script finalizado correctamente.")
